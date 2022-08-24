@@ -68,15 +68,15 @@ impl Client {
             .expect("expecting a valid key");
 
         let client = reqwest::Client::new();
-        Self {
-            dataset_api: DatasetApi::new(client.clone(), sa_auth.clone()),
-            table_api: TableApi::new(client.clone(), sa_auth.clone()),
-            job_api: JobApi::new(client.clone(), sa_auth.clone()),
-            tabledata_api: TableDataApi::new(client.clone(), sa_auth.clone()),
-            routine_api: RoutineApi::new(client.clone(), sa_auth.clone()),
-            model_api: ModelApi::new(client.clone(), sa_auth.clone()),
-            project_api: ProjectApi::new(client, sa_auth),
-        }
+        Self::new(
+            DatasetApi::new(client.clone(), sa_auth.clone()),
+            TableApi::new(client.clone(), sa_auth.clone()),
+            JobApi::new(client.clone(), sa_auth.clone()),
+            TableDataApi::new(client.clone(), sa_auth.clone()),
+            RoutineApi::new(client.clone(), sa_auth.clone()),
+            ModelApi::new(client.clone(), sa_auth.clone()),
+            ProjectApi::new(client, sa_auth),
+        )
     }
 
     /// Constructs a new BigQuery client from a [`ServiceAccountKey`].
@@ -86,6 +86,22 @@ impl Client {
     ///
     /// [`ServiceAccountKey`]: https://docs.rs/yup-oauth2/*/yup_oauth2/struct.ServiceAccountKey.html
     pub async fn from_service_account_key(sa_key: ServiceAccountKey, readonly: bool) -> Result<Self, BQError> {
+        let client = reqwest::Client::new();
+        Self::from_service_account_key_and_http_client(sa_key, client, readonly).await
+    }
+
+    /// Constructs a new BigQuery client from a [`ServiceAccountKey`].
+    /// # Argument
+    /// * `sa_key` - A GCP Service Account Key `yup-oauth2` object.
+    /// * `client` - A http client reqwest::Client object
+    /// * `readonly` - A boolean setting whether the acquired token scope should be readonly.
+    ///
+    /// [`ServiceAccountKey`]: https://docs.rs/yup-oauth2/*/yup_oauth2/struct.ServiceAccountKey.html
+    pub async fn from_service_account_key_and_http_client(
+        sa_key: ServiceAccountKey,
+        client: reqwest::Client,
+        readonly: bool,
+    ) -> Result<Self, BQError> {
         let scopes = if readonly {
             ["https://www.googleapis.com/auth/bigquery.readonly"]
         } else {
@@ -93,16 +109,35 @@ impl Client {
         };
         let sa_auth = ServiceAccountAuthenticator::from_service_account_key(sa_key, &scopes).await?;
 
-        let client = reqwest::Client::new();
-        Ok(Self {
-            dataset_api: DatasetApi::new(client.clone(), sa_auth.clone()),
-            table_api: TableApi::new(client.clone(), sa_auth.clone()),
-            job_api: JobApi::new(client.clone(), sa_auth.clone()),
-            tabledata_api: TableDataApi::new(client.clone(), sa_auth.clone()),
-            routine_api: RoutineApi::new(client.clone(), sa_auth.clone()),
-            model_api: ModelApi::new(client.clone(), sa_auth.clone()),
-            project_api: ProjectApi::new(client, sa_auth),
-        })
+        Ok(Self::new(
+            DatasetApi::new(client.clone(), sa_auth.clone()),
+            TableApi::new(client.clone(), sa_auth.clone()),
+            JobApi::new(client.clone(), sa_auth.clone()),
+            TableDataApi::new(client.clone(), sa_auth.clone()),
+            RoutineApi::new(client.clone(), sa_auth.clone()),
+            ModelApi::new(client.clone(), sa_auth.clone()),
+            ProjectApi::new(client, sa_auth),
+        ))
+    }
+
+    pub fn new(
+        dataset_api: DatasetApi,
+        table_api: TableApi,
+        job_api: JobApi,
+        tabledata_api: TableDataApi,
+        routine_api: RoutineApi,
+        model_api: ModelApi,
+        project_api: ProjectApi,
+    ) -> Self {
+        Self {
+            dataset_api,
+            table_api,
+            job_api,
+            tabledata_api,
+            routine_api,
+            model_api,
+            project_api,
+        }
     }
 
     pub async fn with_workload_identity(readonly: bool) -> Result<Self, BQError> {
