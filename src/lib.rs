@@ -87,7 +87,13 @@ impl Client {
     /// [`ServiceAccountKey`]: https://docs.rs/yup-oauth2/*/yup_oauth2/struct.ServiceAccountKey.html
     pub async fn from_service_account_key(sa_key: ServiceAccountKey, readonly: bool) -> Result<Self, BQError> {
         let client = reqwest::Client::new();
-        Self::from_service_account_key_and_http_client(sa_key, client, readonly).await
+        let scopes = if readonly {
+            ["https://www.googleapis.com/auth/bigquery.readonly"]
+        } else {
+            ["https://www.googleapis.com/auth/bigquery"]
+        };
+
+        Self::from_service_account_key_and_http_client(sa_key, client, &scopes).await
     }
 
     /// Constructs a new BigQuery client from a [`ServiceAccountKey`].
@@ -100,14 +106,9 @@ impl Client {
     pub async fn from_service_account_key_and_http_client(
         sa_key: ServiceAccountKey,
         client: reqwest::Client,
-        readonly: bool,
+        scopes: &[&str],
     ) -> Result<Self, BQError> {
-        let scopes = if readonly {
-            ["https://www.googleapis.com/auth/bigquery.readonly"]
-        } else {
-            ["https://www.googleapis.com/auth/bigquery"]
-        };
-        let sa_auth = ServiceAccountAuthenticator::from_service_account_key(sa_key, &scopes).await?;
+        let sa_auth = ServiceAccountAuthenticator::from_service_account_key(sa_key, scopes).await?;
 
         Ok(Self::new(
             DatasetApi::new(client.clone(), sa_auth.clone()),
