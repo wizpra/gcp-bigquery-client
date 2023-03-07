@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.6] - 2023-03-06
+
+### Improvement
+
+- Fix Rows are not present when job not completed yet (Thanks @alu).
+
+## [0.16.5] - 2023-02-05
+
+### Improvement
+
+- Add `format_options` field to `QueryRequest` (Thanks @JichaoS).
+
+## [0.16.4] - 2022-12-28
+
+### Improvement
+
+- Update `FieldType` enum to `Geography` field type (Thanks @kiibo382).
+
+## [0.16.3] - 2022-12-6
+
+### Improvement
+
+- Two new methods in the job API `query_all_with_location` and `query_all_with_job_reference` (Thanks @MikhailMS).
+
+## [0.16.2] - 2022-11-12
+
+### Improvement
+
+- Example to run with bigquery-emulator (Thanks @marcoleni).
+
+## [0.16.1] - 2022-11-09
+
+### Improvement
+
+- Application default credentials auth & authorized user auth (#46) (Thanks @kiibo382).
+
+### Fix
+
+- Installed flow auth - execute the authorization code flow before returning (#45) (Thanks @kiibo382).
+- Avoid panic when schema doesn't exist (#44) (Thanks @lee-hen).
+
 ## [0.16.0] - 2022-11-06
 
 ### Improvement
